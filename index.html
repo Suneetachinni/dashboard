@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cineverse · movie tickets</title>
+  <style>
+    /* ----- RESET & GLOBAL ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 30% 10%, #1a1e2f, #0a0c14 80%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    /* ----- MAIN CARD (glass + gradient) ----- */
+    .booking-platform {
+      width: min(1300px, 100%);
+      background: rgba(18, 22, 35, 0.75);
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      border-radius: 52px;
+      padding: 32px 36px;
+      box-shadow: 0 40px 70px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(120, 180, 255, 0.12);
+      transition: box-shadow 0.4s;
+    }
+
+    .booking-platform:hover {
+      box-shadow: 0 50px 90px -20px #000, 0 0 0 1px rgba(100, 200, 255, 0.2);
+    }
+
+    /* ----- HEADER / BRANDING ----- */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #4f9eff, #a56eff);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 20px -6px #4f9eff80;
+      color: white;
+    }
+
+    .logo h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #eef5ff, #b8d4ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo span {
+      font-weight: 300;
+      background: none;
+      -webkit-text-fill-color: #9bb6e0;
+      font-size: 0.95rem;
+      letter-spacing: 2px;
+      margin-left: 4px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 8px 20px 8px 12px;
+      border-radius: 60px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: #c8d9ff;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+      cursor: default;
+    }
+
+    .user-badge:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(100, 180, 255, 0.3);
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(145deg, #2e3b5e, #1b2338);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border: 1.5px solid #4f9eff60;
+    }
+
+    /* ----- MAIN LAYOUT (movies + seat panel) ----- */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 28px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .booking-platform {
+        padding: 24px 20px;
+        border-radius: 36px;
+      }
+    }
+
+    /* ----- NOW SHOWING / MOVIE CARDS ----- */
+    .section-title {
+      color: #b8ceff;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      font-weight: 500;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, #3b4b77, transparent);
+    }
+
+    .movie-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 440px;
+      overflow-y: auto;
+      padding-right: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: #3e527e #141a2b;
+    }
+
+    .movie-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .movie-list::-webkit-scrollbar-track {
+      background: #141a2b;
+      border-radius: 10px;
+    }
+
+    .movie-list::-webkit-scrollbar-thumb {
+      background: #3e527e;
+      border-radius: 10px;
+    }
+
+    .movie-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: rgba(20, 28, 48, 0.6);
+      padding: 16px 20px;
+      border-radius: 28px;
+      border: 1px solid rgba(120, 170, 255, 0.08);
+      transition: all 0.25s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .movie-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 10% 20%, rgba(100, 180, 255, 0.15), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .movie-card:hover {
+      background: rgba(30, 42, 70, 0.9);
+      border-color: rgba(100, 180, 255, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 18px 30px -12px #00000080;
+    }
+
+    .movie-card:hover::before {
+      opacity: 1;
+    }
+
+    .movie-card.active {
+      background: rgba(38, 58, 100, 0.9);
+      border-color: #4f9eff;
+      box-shadow: 0 0 0 1px #4f9eff40, 0 18px 30px -12px #001a33;
+    }
+
+    .movie-card.active::after {
+      content: '✓';
+      position: absolute;
+      right: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #4f9eff;
+      font-size: 1.4rem;
+      font-weight: 600;
+      text-shadow: 0 0 12px #4f9eff;
+    }
+
+    .movie-poster {
+      width: 70px;
+      height: 70px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #2b3a5c, #111a2e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      box-shadow: 0 8px 16px -6px #00000080;
+      border: 1px solid #ffffff0d;
+    }
+
+    .movie-info {
+      flex: 1;
+    }
+
+    .movie-info h3 {
+      color: #f0f5ff;
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      letter-spacing: -0.2px;
+    }
+
+    .movie-meta {
+      display: flex;
+      gap: 14px;
+      color: #8fa3cc;
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
+
+    .movie-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .rating {
+      color: #ffc96b;
+      font-weight: 600;
+    }
+
+    /* ----- SEAT PANEL (right side) ----- */
+    .seat-panel {
+      background: rgba(12, 18, 32, 0.7);
+      border-radius: 32px;
+      padding: 24px 22px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 1px 0 #ffffff08, 0 20px 30px -20px #000000;
+    }
+
+    .selected-movie {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #1f2a44;
+    }
+
+    .selected-movie .mini-poster {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: #1f2a44;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+
+    .selected-movie .title {
+      font-weight: 600;
+      color: #eef5ff;
+      font-size: 1.1rem;
+    }
+
+    .selected-movie .sub {
+      font-size: 0.8rem;
+      color: #8fa3cc;
+    }
+
+    .screen-indicator {
+      text-align: center;
+      color: #4f7eb3;
+      font-size: 0.7rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin: 8px 0 14px;
+      position: relative;
+    }
+
+    .screen-indicator::before {
+      content: '';
+      display: block;
+      width: 80%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #4f9eff, #a56eff, transparent);
+      margin: 0 auto 8px;
+      border-radius: 10px;
+      opacity: 0.6;
+    }
+
+    /* seat grid */
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+      justify-content: center;
+      margin: 8px 0 16px;
+      padding: 0 4px;
+    }
+
+    .seat {
+      aspect-ratio: 1 / 1;
+      background: #1f2a44;
+      border-radius: 12px 12px 8px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: #a0b5dd;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 0 #0d1220;
+      border: 1px solid #ffffff0a;
+      user-select: none;
+    }
+
+    .seat:hover {
+      background: #2f4166;
+      transform: scale(0.96);
+      color: #d0e2ff;
+    }
+
+    .seat.selected {
+      background: linear-gradient(145deg, #4f9eff, #2d6bd9);
+      color: white;
+      box-shadow: 0 4px 0 #1a3b73, 0 0 16px #4f9eff90;
+      border-color: #9ac4ff;
+      font-weight: 600;
+      transform: scale(1.02);
+    }
+
+    .seat.occupied {
+      background: #11192b;
+      color: #3d4a66;
+      box-shadow: 0 4px 0 #080c14;
+      cursor: not-allowed;
+      opacity: 0.5;
+      pointer-events: none;
+      border-color: #1f2a3a;
+    }
+
+    .seat.occupied::after {
+      content: '✕';
+      font-size: 0.7rem;
+      color: #4e5a78;
+    }
+
+    .seat.aisle {
+      grid-column: span 1;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* seat legend */
+    .legend {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #8497bb;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+      background: #1f2a44;
+    }
+
+    .legend-box.selected {
+      background: linear-gradient(145deg, #4f9eff, #2d6bd9);
+    }
+
+    .legend-box.occupied {
+      background: #11192b;
+      opacity: 0.5;
+    }
+
+    /* order summary */
+    .order-summary {
+      margin-top: auto;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 24px;
+      padding: 16px 18px;
+      border: 1px solid #ffffff08;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      color: #b0c2e0;
+      font-size: 0.9rem;
+      padding: 6px 0;
+    }
+
+    .summary-row.total {
+      font-weight: 700;
+      color: #eef5ff;
+      font-size: 1.2rem;
+      border-top: 1px solid #2e3e60;
+      margin-top: 6px;
+      padding-top: 12px;
+    }
+
+    .btn-book {
+      width: 100%;
+      margin-top: 16px;
+      padding: 18px 0;
+      border-radius: 60px;
+      border: none;
+      background: linear-gradient(135deg, #4f9eff, #a56eff);
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow: 0 14px 25px -8px #4f9effb0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-book:hover {
+      transform: scale(1.02);
+      box-shadow: 0 20px 35px -8px #4f9effe0;
+      filter: brightness(1.1);
+    }
+
+    .btn-book:active {
+      transform: scale(0.99);
+    }
+
+    .btn-book:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+      filter: grayscale(0.6);
+    }
+
+    /* toast */
+    .toast-message {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e2b4b;
+      color: #e0edff;
+      padding: 14px 32px;
+      border-radius: 60px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(20px);
+      border: 1px solid #4f9eff80;
+      box-shadow: 0 20px 40px -10px #000000cc;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    .toast-message.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* responsiveness */
+    @media (max-width: 600px) {
+      .booking-platform {
+        padding: 16px;
+        border-radius: 28px;
+      }
+      .seat-grid {
+        gap: 5px;
+      }
+      .seat {
+        border-radius: 8px;
+        font-size: 0.55rem;
+      }
+      .movie-card {
+        padding: 12px 14px;
+      }
+      .movie-poster {
+        width: 54px;
+        height: 54px;
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="booking-platform">
+    <!-- header -->
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">🎬</div>
+        <h1>cineverse<span>tickets</span></h1>
+      </div>
+      <div class="user-badge">
+        <div class="avatar">👤</div>
+        <span>Alex Rivera</span>
+      </div>
+    </div>
+
+    <!-- main content -->
+    <div class="main-grid">
+      <!-- left: movie list -->
+      <div class="movies-section">
+        <div class="section-title">NOW SHOWING · IMAX</div>
+        <div class="movie-list" id="movieList">
+          <!-- movie cards injected via JS -->
+        </div>
+      </div>
+
+      <!-- right: seat selection -->
+      <div class="seat-panel">
+        <div class="selected-movie" id="selectedMovieDisplay">
+          <div class="mini-poster">🎥</div>
+          <div>
+            <div class="title">Dune: Part Two</div>
+            <div class="sub">IMAX · 2h 46m · PG-13</div>
+          </div>
+        </div>
+
+        <div class="screen-indicator">SCREEN</div>
+
+        <!-- seat grid -->
+        <div class="seat-grid" id="seatGrid">
+          <!-- seats generated by JS -->
+        </div>
+
+        <!-- legend -->
+        <div class="legend">
+          <div class="legend-item"><div class="legend-box"></div> Available</div>
+          <div class="legend-item"><div class="legend-box selected"></div> Selected</div>
+          <div class="legend-item"><div class="legend-box occupied"></div> Occupied</div>
+        </div>
+
+        <!-- order summary -->
+        <div class="order-summary">
+          <div class="summary-row">
+            <span>Seats</span>
+            <span id="seatCountDisplay">0</span>
+          </div>
+          <div class="summary-row">
+            <span>Price per seat</span>
+            <span id="pricePerSeatDisplay">$18.50</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total</span>
+            <span id="totalPriceDisplay">$0.00</span>
+          </div>
+          <button class="btn-book" id="bookBtn" disabled>
+            <span>🎟️</span> BOOK TICKETS
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- toast -->
+  <div class="toast-message" id="toast">✅ Tickets booked successfully!</div>
+
+  <script>
+    (function() {
+      // ---------- MOVIE DATA ----------
+      const movies = [
+        { id: 1, title: 'Dune: Part Two', emoji: '🏜️', rating: '8.8', duration: '2h 46m', genre: 'Sci-Fi', price: 18.50, occupied: [3,4,5,11,12,19,26,27,28,35,42,51,52,53,60] },
+        { id: 2, title: 'Oppenheimer', emoji: '⚛️', rating: '8.5', duration: '3h 0m', genre: 'Drama', price: 16.50, occupied: [1,2,8,9,10,17,24,31,38,45,52,59,60,61,62] },
+        { id: 3, title: 'The Batman', emoji: '🦇', rating: '8.1', duration: '2h 56m', genre: 'Action', price: 17.00, occupied: [4,5,6,13,14,21,28,35,42,49,56,57,58,63] },
+        { id: 4, title: 'Poor Things', emoji: '🧠', rating: '7.9', duration: '2h 21m', genre: 'Comedy', price: 15.00, occupied: [0,7,15,22,29,36,43,50,57,58,59,60,61,62,63] },
+        { id: 5, title: 'Kung Fu Panda 4', emoji: '🐼', rating: '7.2', duration: '1h 34m', genre: 'Animation', price: 14.50, occupied: [2,3,10,11,18,25,32,39,46,53,54,55,60,61,62] }
+      ];
+
+      // seat grid: 8 columns x 8 rows = 64 seats
+      const ROWS = 8;
+      const COLS = 8;
+      const TOTAL_SEATS = ROWS * COLS;
+
+      // state
+      let selectedMovie = movies[0];
+      let selectedSeats = new Set(); // will store indices (0-based)
+      let occupiedSeats = new Set(selectedMovie.occupied || []);
+
+      // DOM elements
+      const movieListEl = document.getElementById('movieList');
+      const seatGridEl = document.getElementById('seatGrid');
+      const selectedMovieDisplay = document.getElementById('selectedMovieDisplay');
+      const seatCountDisplay = document.getElementById('seatCountDisplay');
+      const pricePerSeatDisplay = document.getElementById('pricePerSeatDisplay');
+      const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+      const bookBtn = document.getElementById('bookBtn');
+      const toastEl = document.getElementById('toast');
+
+      // ---------- RENDER MOVIE LIST ----------
+      function renderMovies() {
+        movieListEl.innerHTML = '';
+        movies.forEach(movie => {
+          const card = document.createElement('div');
+          card.className = `movie-card ${movie.id === selectedMovie.id ? 'active' : ''}`;
+          card.dataset.movieId = movie.id;
+
+          card.innerHTML = `
+            <div class="movie-poster">${movie.emoji}</div>
+            <div class="movie-info">
+              <h3>${movie.title}</h3>
+              <div class="movie-meta">
+                <span class="rating">⭐ ${movie.rating}</span>
+                <span>⏱️ ${movie.duration}</span>
+                <span>🎭 ${movie.genre}</span>
+              </div>
+            </div>
+          `;
+
+          card.addEventListener('click', () => {
+            if (selectedMovie.id === movie.id) return;
+            // switch movie
+            selectedMovie = movie;
+            occupiedSeats = new Set(movie.occupied || []);
+            selectedSeats.clear();
+            renderMovies();
+            renderSeats();
+            updateSummary();
+            updateSelectedMovieDisplay();
+          });
+
+          movieListEl.appendChild(card);
+        });
+      }
+
+      // ---------- RENDER SEATS ----------
+      function renderSeats() {
+        seatGridEl.innerHTML = '';
+        for (let i = 0; i < TOTAL_SEATS; i++) {
+          const seat = document.createElement('div');
+          seat.className = 'seat';
+          seat.dataset.index = i;
+
+          // seat label (row letter + column number)
+          const row = Math.floor(i / COLS);
+          const col = i % COLS;
+          const rowLetter = String.fromCharCode(65 + row); // A,B,C...
+          const seatLabel = `${rowLetter}${col + 1}`;
+          seat.textContent = seatLabel;
+
+          if (occupiedSeats.has(i)) {
+            seat.classList.add('occupied');
+          } else if (selectedSeats.has(i)) {
+            seat.classList.add('selected');
+          }
+
+          seat.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (occupiedSeats.has(i)) return; // not clickable
+
+            if (selectedSeats.has(i)) {
+              selectedSeats.delete(i);
+              seat.classList.remove('selected');
+            } else {
+              selectedSeats.add(i);
+              seat.classList.add('selected');
+            }
+            updateSummary();
+          });
+
+          seatGridEl.appendChild(seat);
+        }
+      }
+
+      // ---------- UPDATE SELECTED MOVIE DISPLAY ----------
+      function updateSelectedMovieDisplay() {
+        selectedMovieDisplay.innerHTML = `
+          <div class="mini-poster">${selectedMovie.emoji}</div>
+          <div>
+            <div class="title">${selectedMovie.title}</div>
+            <div class="sub">IMAX · ${selectedMovie.duration} · ${selectedMovie.genre}</div>
+          </div>
+        `;
+      }
+
+      // ---------- UPDATE SUMMARY ----------
+      function updateSummary() {
+        const count = selectedSeats.size;
+        seatCountDisplay.textContent = count;
+        const pricePerSeat = selectedMovie.price;
+        pricePerSeatDisplay.textContent = `$${pricePerSeat.toFixed(2)}`;
+        const total = count * pricePerSeat;
+        totalPriceDisplay.textContent = `$${total.toFixed(2)}`;
+        bookBtn.disabled = count === 0;
+      }
+
+      // ---------- SHOW TOAST ----------
+      function showToast(message) {
+        toastEl.textContent = message;
+        toastEl.classList.add('show');
+        setTimeout(() => {
+          toastEl.classList.remove('show');
+        }, 2800);
+      }
+
+      // ---------- BOOK ACTION ----------
+      bookBtn.addEventListener('click', () => {
+        if (selectedSeats.size === 0) return;
+
+        const count = selectedSeats.size;
+        const total = (count * selectedMovie.price).toFixed(2);
+
+        // Mark seats as occupied (visually and data)
+        selectedSeats.forEach(idx => {
+          occupiedSeats.add(idx);
+        });
+
+        // update occupancy array for current movie
+        selectedMovie.occupied = Array.from(occupiedSeats).sort((a,b)=>a-b);
+
+        // clear selection
+        selectedSeats.clear();
+
+        // re-render seats to show new occupancy
+        renderSeats();
+        updateSummary();
+
+        // show success toast
+        showToast(`✅ ${count} ticket${count > 1 ? 's' : ''} booked · $${total}`);
+      });
+
+      // ---------- INITIALIZATION ----------
+      function init() {
+        renderMovies();
+        renderSeats();
+        updateSummary();
+        updateSelectedMovieDisplay();
+        // set initial price per seat display
+        pricePerSeatDisplay.textContent = `$${selectedMovie.price.toFixed(2)}`;
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
